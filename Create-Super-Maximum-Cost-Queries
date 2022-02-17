@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <algorithm>
+#include <assert.h>
+#include <set>
+#include <map>
+#include <complex>
+#include <iostream>
+#include <time.h>
+#include <stack>
+#include <stdlib.h>
+#include <memory.h>
+#include <bitset>
+#include <math.h>
+#include <string>
+#include <string.h>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+const int MaxN = 1e5 + 10;
+const int INF = 1e9;
+const int MOD = 1e9 + 7;
+
+int n, q, sz[MaxN], who[MaxN];
+vector < pair < int, int > > graph[MaxN];
+long long cnt = 0;
+
+int get(int v) {
+  return v == who[v] ? v : who[v] = get(who[v]);
+}
+
+void unite(int a, int b) {
+  a = get(a);
+  b = get(b);
+  if (a == b) {
+    return;
+  }
+  if (a & 1) {
+    swap(a, b);
+  }
+  cnt += 1LL * sz[a] * sz[b];
+  sz[b] += sz[a];
+  who[a] = b;
+}
+
+int main() {
+//  freopen("input.txt", "r", stdin);
+//  ios::sync_with_stdio(false);
+//  cin.tie(NULL);
+  scanf("%d%d", &n, &q);
+  vector < pair < int, pair < int, int > > > edges;
+  for (int i = 0; i < n - 1; ++i) {
+    int u, v, w;
+    scanf("%d%d%d", &u, &v, &w);
+    graph[u].push_back(make_pair(v, w));
+    graph[v].push_back(make_pair(u, w));
+    edges.push_back(make_pair(w, make_pair(u, v)));
+  }
+  vector < pair < int, long long > > ans;
+  ans.push_back(make_pair(0, 0LL));
+  for (int i = 1; i <= n; ++i) {
+    who[i] = i;
+    sz[i] = 1;
+  }
+  sort(edges.begin(), edges.end());
+  for (int i = 0, j; i < (int)edges.size(); i = j) {
+    for (j = i; j < (int)edges.size() && edges[j].first == edges[i].first; ++j);
+    for (int k = i; k < j; ++k) {
+      unite(edges[k].second.first, edges[k].second.second);
+    }
+    ans.push_back(make_pair(edges[i].first, cnt));
+  }
+  ans.push_back(make_pair(MOD, ans.back().second));
+  for (int i = 0; i < q; ++i) {
+    int l, r;
+    scanf("%d%d", &l, &r);
+    printf("%lld\n", (--upper_bound(ans.begin(), ans.end(), make_pair(r, 1LL << 60)))->second -
+           (--lower_bound(ans.begin(), ans.end(), make_pair(l, -1LL << 60)))->second);
+  }
+  return 0;
+}
